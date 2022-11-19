@@ -2,12 +2,11 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import createDebug from 'debug';
 import { Context, Telegraf } from 'telegraf';
 import { Update } from 'telegraf/typings/core/types/typegram';
-import { BOT_TOKEN } from '..';
 
 const debug = createDebug('bot:dev');
 
 const PORT = (process.env.PORT && parseInt(process.env.PORT, 10)) || 3000;
-const VERCEL_URL = `${process.env.VERCEL_URL}/bot${BOT_TOKEN}`;
+const VERCEL_URL = `${process.env.VERCEL_URL}`;
 
 const production = async (
   req: VercelRequest,
