@@ -4,6 +4,8 @@ Telegram Bot Vercel Boilerplate based on Node.js and [Telegraf](https://github.c
 
 This template inspired by [Telegram Bot Boilerplate](https://github.com/yakovlevyuri/telegram-bot-boilerplate) for easily deploy to [Vercel](https://vercel.com).
 
+[![Live Demo](https://img.shields.io/badge/Medium-12100E?style=for-the-badge&logo=medium&logoColor=white)](https://medium.com/@7rodma/deploy-a-serverless-telegram-chatbot-using-vercel-57665d942a58)
+
 ## Before you start
 
 First rename `.env-sample` file to `.env` and fill in all necessary values.
