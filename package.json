@@ -3,8 +3,8 @@
   "version": "1.1.0",
   "description": "Telegram Bot Vercel Boilerplate",
   "main": "src/index.ts",
-  "author": "Mark Pavlov (https://github.com/m7mark)",
-  "homepage": "https://github.com/m7mark/telegram-bot-vercel-boilerplate",
+  "author": "Mark Pavlov (https://github.com/sollidy)",
+  "homepage": "https://github.com/sollidy/telegram-bot-vercel-boilerplate",
   "dependencies": {
     "@vercel/node": "^2.15.2",
     "dotenv-cli": "^7.2.1",
