@@ -6,19 +6,19 @@
   "author": "Mark Pavlov (https://github.com/sollidy)",
   "homepage": "https://github.com/sollidy/telegram-bot-vercel-boilerplate",
   "dependencies": {
-    "@vercel/node": "^3.0.7",
+    "@vercel/node": "^3.0.11",
     "dotenv-cli": "^7.3.0",
     "telegraf": "^4.15.0"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.10",
-    "@types/node": "^20.8.8",
+    "@types/debug": "^4.1.12",
+    "@types/node": "^20.10.0",
     "@vercel/ncc": "^0.38.1",
     "debug": "^4.3.4",
     "nodemon": "^3.0.1",
-    "prettier": "^3.0.3",
+    "prettier": "^3.1.0",
     "ts-node": "^10.9.1",
-    "typescript": "^5.2.2"
+    "typescript": "^5.3.2"
   },
   "scripts": {
     "dev": "DEBUG=bot* dotenv -- nodemon -e ts -x ts-node src/index.ts",
