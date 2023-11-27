@@ -25,6 +25,10 @@ npm dev
 
 You can fork this template and do the necessary changes you need. Then you when are done with your changes simply goto [vercel git import](https://vercel.com/import/git).
 
+Reference to [this update](https://vercel.com/docs/security/deployment-protection#migrating-to-standard-protection), you need turn off `Vercel Authentication`, Settings => Deployment Protection
+
+Feel free to create PR!
+
 ## Demo
 
 You can see a working version of the bot at [@Node_api_m_bot](https://t.me/Node_api_m_bot)
