@@ -18,7 +18,7 @@ BOT_TOKEN="<YOUR_BOT_API_TOKEN>"
 
 ```
 npm install
-npm dev
+npm run dev
 ```
 
 ## Production
