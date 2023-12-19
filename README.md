@@ -14,11 +14,11 @@ First rename `.env-sample` file to `.env` and fill in all necessary values.
 BOT_TOKEN="<YOUR_BOT_API_TOKEN>"
 ```
 
-## Start your server
+## Start your local server
 
 ```
-npm install
-npm dev
+yarn
+yarn dev
 ```
 
 ## Production
