@@ -11,7 +11,7 @@ const VERCEL_URL = `${process.env.VERCEL_URL}`;
 const production = async (
   req: VercelRequest,
   res: VercelResponse,
-  bot: Telegraf<Context<Update>>
+  bot: Telegraf<Context<Update>>,
 ) => {
   debug('Bot runs in production mode');
   debug(`setting webhook: ${VERCEL_URL}`);
