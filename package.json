@@ -1,10 +1,10 @@
 {
-  "name": "telegram-bot-vercel-boilerplate",
+  "name": "vashche_top_bot",
   "version": "1.1.0",
-  "description": "Telegram Bot Vercel Boilerplate",
+  "description": "Telegram Bot for access management of telegram vpn service.\n\nFor now is under construction.",
   "main": "src/index.ts",
-  "author": "Mark Pavlov (https://github.com/sollidy)",
-  "homepage": "https://github.com/sollidy/telegram-bot-vercel-boilerplate",
+  "author": "@hypeSTR",
+  "homepage": "https://t.me/vashche_top_bot",
   "dependencies": {
     "@vercel/node": "^3.0.13",
     "dotenv-cli": "^7.3.0",
