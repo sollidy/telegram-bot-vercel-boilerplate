@@ -1,3 +1,13 @@
+# Chomp Bot
+
+## Development
+
+### Generating DB types
+
+```
+supabase gen types typescript --project-id PROJECT_ID > src/supabase/database.types.ts
+```
+
 # Telegram Bot Vercel Boilerplate
 
 Telegram Bot Vercel Boilerplate based on Node.js and [Telegraf](https://github.com/telegraf/telegraf) framework.
