@@ -58,7 +58,7 @@ bot.start(async ctx => {
 });
 
 /*
-  ANSWERING FIRST ORDER
+  NEW -> ANSWERING FIRST ORDER
 */
 bot.action("new.quickstart", async ctx =>{
   const user: IBotUser = adaptCtx2User(ctx)
@@ -75,9 +75,9 @@ bot.action("new.quickstart", async ctx =>{
 });
 
 /*
-  ANSWERING SECOND ORDER
+  ANSWERING FIRST ORDER -> ANSWERING SECOND ORDER
 */
-const secondPrompt = "What percentage of people do you think answered NO?"
+const secondPrompt = "What percentage of people do you think answered Raydium?"
 const secondButtonOptions: {[k: string]: string }= {
   "answering-second-order.0": "0%",
   "answering-second-order.10": "10%",
@@ -112,11 +112,6 @@ bot.action("answering-first-order.3", async ctx =>{
 
 bot.action("answering-first-order.4", async ctx =>{
   ctx.reply(secondPrompt, Markup.inlineKeyboard(formattedSecondButtons))
-})
-
-bot.on("message", async ctx => {
-  const txt = ctx.message as any
-  console.log("Got message " + txt.text)
 })
 
 /*
@@ -255,3 +250,61 @@ bot.action("completed-answering.home", async ctx =>{
   ctx.reply(prompt, Markup.inlineKeyboard(buttons))
 })
 
+
+/*
+  NEW -> SELECTED REVEAL
+*/
+bot.action("new.reveal", async ctx =>{
+  const prompt = "You have 8 questions available to reveal. Reveal all?"
+  const buttonOptions: {[k: string]: string }= {
+    "selected-reveal.no": "Maybe Later",
+    "selected-reveal.yes": "Yes",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+});
+
+bot.action("selected-reveal.no", async ctx =>{
+  const prompt = "What do you want to do today?"
+  const buttonOptions: {[k: string]: string }= {
+    "new.quickstart": "Start answering 🎲",
+    "new.reveal": "Reveal Answers 💵"
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("selected-reveal.yes", async ctx =>{
+  const prompt = `You revealed 8 questions. Click the ones with 💰 to claim.`
+
+  const revealOptions: {[k: string]: string }= {
+    "revealed.0": "💰💰💰 Claim all rewards 💰💰💰",
+    "revealed.1": "Lorem ipsum dolor sit amet",
+    "revealed.2": "💰 Lorem ipsum dolor sit amet",
+    "revealed.3": "Lorem ipsum dolor sit amet",
+    "revealed.4": "Lorem ipsum dolor sit amet",
+    "revealed.5": "💰 Lorem ipsum dolor sit amet",
+    "revealed.6": "💰 Lorem ipsum dolor sit amet",
+    "revealed.7": "Lorem ipsum dolor sit amet",
+    "revealed.8": "💰 Humans have more than 5 senses",
+  }
+  const revealButtons = Object.keys(revealOptions).map(key => Markup.button.callback(revealOptions[key], key))
+  
+  const menuOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const menuButtons = Object.keys(menuOptions).map(key => Markup.button.callback(menuOptions[key], key))
+
+  const buttons = revealButtons.map(button => [button]).slice(0, 9)
+  
+  // Add the menu buttons as a single array at the end
+  buttons.push(menuButtons)
+
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.on("message", async ctx => {
+  const txt = ctx.message as any
+  ctx.reply("Send /start to begin");
+})
