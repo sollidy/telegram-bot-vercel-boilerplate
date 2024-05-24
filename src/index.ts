@@ -9,6 +9,11 @@ import { InlineQueryResult } from "telegraf/types";
 import { createClient } from '@supabase/supabase-js'
 import { Database } from './supabase/database.types';
 import { EBotUserState, IBotUser } from './interfaces/bot-users';
+import { adaptCtx2User } from './lib/utils';
+
+/*
+  SETUP
+*/
 
 // Create a single supabase client for interacting with your database
 const supabaseUrl = process.env.SUPABASE_URL!
@@ -21,68 +26,6 @@ const ENVIRONMENT = process.env.NODE_ENV || '';
 
 const bot = new Telegraf(BOT_TOKEN);
 
-const question = "What do you want to do today?"
-// const keyboard = Markup.keyboard([
-// 	Markup.button.c("BONK"),
-// 	Markup.button.text("SOL"),
-// 	Markup.button.text("BTC"),
-// 	Markup.button.text("ETH"),
-// ]);
-
-bot.start(async ctx => {
-  console.log("Someone started")
-  const newUser: IBotUser = {
-    tg_id: ctx.from?.id!,
-    tg_first_name: ctx.from?.first_name!,
-    tg_username: ctx.from?.username!,
-    tg_is_bot: ctx.from?.is_bot!,
-    tg_language_code: ctx.from?.language_code!,
-    state: EBotUserState.NEW,
-    // TODO use chomp API to get an ID
-    chomp_id: "TODO"
-  }
-  console.log(newUser)
-
-  const a = await supabase
-    .from('bot_users')
-    .insert(newUser).select()
-
-    console.log(a)
-
-  // now - save tg info to DB
-  // next - use turnkey to crea
-  // future - call create user on chomp
-  ctx.reply(question)
-});
-
-// bot.command("play", async ctx =>{
-// 	await ctx.replyWithPhoto({ url: "https://github.com/gator-labs/chomp/blob/main/public/images/chomp-graphic.png?raw=true"})
-//   // await ctx.replyWithMarkdownV2("Hey I\\'m ChompBot\\. I'll ask you some questions and you can win BONK if you get them right\\. Are you ready to play?", keyboard)
-//   await ctx.replyWithMarkdownV2("Which would you HODL through a bear?", keyboard)
-//   // await ctx.intli
-// });
-
-
-
-// bot.command("reveal", async ctx =>{
-//   await ctx.replyWithMarkdownV2("You need 10,000 BONK to reveal the answer\\. Send 10,000 BONK or 0\\.01 SOL to the address below to reveal the answer\\.")
-//   ctx.replyWithMarkdownV2("ip5UyE6cXhy6cmxuaHWzW2pWmkFAZuDg8mjXCSroeA4")
-// });
-
-// bot.on("message", async ctx => {
-//   const txt = ctx.message as any
-//   console.log(txt.text)
-//   console.log(ctx)
-//   const {update: {message: {from}}} = ctx
-//   console.log(from)
-
-//   if (txt.text === "BONK") {
-//     await ctx.replyWithMarkdownV2("How likely are people to agree with you?", Markup.removeKeyboard())
-//   } else {
-//     ctx.replyWithMarkdownV2("Great, I'll let you know when that question is ready to reveal\\. What do you want to do next?")
-//   }
-// })
-
 //prod mode (Vercel)
 export const startVercel = async (req: VercelRequest, res: VercelResponse) => {
   await production(req, res, bot);
@@ -90,3 +33,225 @@ export const startVercel = async (req: VercelRequest, res: VercelResponse) => {
 
 //dev mode
 ENVIRONMENT !== 'production' && development(bot);
+
+/*
+  ENTRYPOINT - START
+*/
+bot.start(async ctx => {
+  console.log("Start command received")
+  const newUser: IBotUser = adaptCtx2User(ctx)
+
+  const {data, error} = await supabase
+    .from('bot_users')
+    .insert(newUser).select()
+
+  // now - save tg info to DB
+  // next - use turnkey to crea
+  // future - call create user on chomp
+  const prompt = "What do you want to do today?"
+  const buttonOptions: {[k: string]: string }= {
+    "new.quickstart": "Start answering 🎲",
+    "new.reveal": "Reveal Answers 💵"
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+});
+
+/*
+  ANSWERING FIRST ORDER
+*/
+bot.action("new.quickstart", async ctx =>{
+  const user: IBotUser = adaptCtx2User(ctx)
+
+  const prompt = "Which of the following is NOT a DEX?"
+  const buttonOptions: {[k: string]: string }= {
+    "answering-first-order.1": "Jupiter",
+    "answering-first-order.2": "Raydium",
+    "answering-first-order.3": "Orca",
+    "answering-first-order.4": "Phoenix",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+});
+
+/*
+  ANSWERING SECOND ORDER
+*/
+const secondPrompt = "What percentage of people do you think answered NO?"
+const secondButtonOptions: {[k: string]: string }= {
+  "answering-second-order.0": "0%",
+  "answering-second-order.10": "10%",
+  "answering-second-order.20": "20%",
+  "answering-second-order.30": "30%",
+  "answering-second-order.40": "40%",
+  "answering-second-order.50": "50%",
+  "answering-second-order.60": "60%",
+  "answering-second-order.70": "70%",
+  "answering-second-order.80": "80%",
+  "answering-second-order.90": "90%",
+  "answering-second-order.100": "100%",
+}
+const secondButtons = Object.keys(secondButtonOptions).map(key => Markup.button.callback(secondButtonOptions[key], key))
+const formattedSecondButtons = [
+  secondButtons.slice(0, 5),  // Elements 0-4
+  secondButtons.slice(5, 6),  // Element 5
+  secondButtons.slice(6)      // Elements 6 and beyond
+];
+
+bot.action("answering-first-order.1", async ctx =>{
+  ctx.reply(secondPrompt, Markup.inlineKeyboard(formattedSecondButtons))
+})
+
+bot.action("answering-first-order.2", async ctx =>{
+  ctx.reply(secondPrompt, Markup.inlineKeyboard(formattedSecondButtons))
+})
+
+bot.action("answering-first-order.3", async ctx =>{
+  ctx.reply(secondPrompt, Markup.inlineKeyboard(formattedSecondButtons))
+})
+
+bot.action("answering-first-order.4", async ctx =>{
+  ctx.reply(secondPrompt, Markup.inlineKeyboard(formattedSecondButtons))
+})
+
+bot.on("message", async ctx => {
+  const txt = ctx.message as any
+  console.log("Got message " + txt.text)
+})
+
+/*
+  COMPLETED ANSWERING
+*/
+
+bot.action("answering-second-order.0", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.10", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.20", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.30", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.40", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.50", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.60", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.70", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.80", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.90", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("answering-second-order.100", async ctx =>{
+  const prompt = "Well done! You just chomped a question.\n\nWhat do you want to do next?"
+  const buttonOptions: {[k: string]: string }= {
+    "completed-answering.more": "Answer more 🎲",
+    "completed-answering.home": "Go home 🏡",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("completed-answering.more", async ctx =>{
+  const prompt = "Which of the following is NOT a DEX?"
+  const buttonOptions: {[k: string]: string }= {
+    "answering-first-order.1": "Jupiter",
+    "answering-first-order.2": "Raydium",
+    "answering-first-order.3": "Orca",
+    "answering-first-order.4": "Phoenix",
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
+bot.action("completed-answering.home", async ctx =>{
+  const prompt = "What do you want to do today?"
+  const buttonOptions: {[k: string]: string }= {
+    "new.quickstart": "Start answering 🎲",
+    "new.reveal": "Reveal Answers 💵"
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+})
+
