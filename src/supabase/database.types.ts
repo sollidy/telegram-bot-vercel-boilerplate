@@ -11,9 +11,10 @@ export type Database = {
     Tables: {
       bot_users: {
         Row: {
-          chomp_id: string | null
+          chomp_id: string
           created_at: string
           id: string
+          original_email_address: string
           state: string
           tg_first_name: string
           tg_id: number
@@ -23,9 +24,10 @@ export type Database = {
           tg_username: string
         }
         Insert: {
-          chomp_id?: string | null
+          chomp_id: string
           created_at?: string
           id?: string
+          original_email_address: string
           state?: string
           tg_first_name: string
           tg_id: number
@@ -35,9 +37,10 @@ export type Database = {
           tg_username: string
         }
         Update: {
-          chomp_id?: string | null
+          chomp_id?: string
           created_at?: string
           id?: string
+          original_email_address?: string
           state?: string
           tg_first_name?: string
           tg_id?: number

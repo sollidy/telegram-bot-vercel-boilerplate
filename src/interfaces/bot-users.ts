@@ -10,6 +10,7 @@ export type IBotUser = {
     tg_username: string
     tg_is_bot: boolean
     tg_language_code: string
+    original_email_address?: string,
     state: string
     chomp_id?: string
     created_at?: string

@@ -10,7 +10,7 @@ export const adaptCtx2User = (ctx: Context) => {
         tg_language_code: ctx.from?.language_code!,
         state: EBotUserState.NEW,
         // TODO use chomp API to get an ID
-        chomp_id: "TODO"
+        chomp_id: "TODO",
     }
 
     return newUser
