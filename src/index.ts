@@ -1,10 +1,7 @@
 import { Telegraf, Markup } from 'telegraf';
 
-import { about } from './commands';
-import { greeting } from './text';
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { development, production } from './core';
-import { InlineQueryResult } from "telegraf/types";
 
 import { createClient } from '@supabase/supabase-js'
 import { Database } from './supabase/database.types';
@@ -68,6 +65,8 @@ const replyWithPrimaryOptions = async (ctx: any) => {
 */
 bot.start(async ctx => {
   console.log("Start command received")
+  console.log(ctx.from)
+  console.log(ctx.chat.id)
   const newUser: IBotUser = adaptCtx2User(ctx)
   const {tg_id: tgId} = newUser
 
@@ -402,34 +401,50 @@ bot.action("selected-reveal.no", async ctx =>{
   ctx.reply(prompt, Markup.inlineKeyboard(buttons))
 })
 
+bot.action("revealed.0", async ctx =>{
+	// ctx.answerInlineQuery([], {
+	// 	button: { text: "Launch", web_app: { url: WEB_APP_URL } },
+	// })
+  ctx.reply(
+		"Congratulations you just claimed 37,292 BONK!",
+	)
+
+  replyWithPrimaryOptions(ctx)
+})
+
+
 bot.action("selected-reveal.yes", async ctx =>{
-  const prompt = `You revealed 8 questions. Click the ones with 💰 to claim.`
+  ctx.reply(
+		"Follow the link to burn BONK and reveal!",
+		Markup.inlineKeyboard([Markup.button.webApp("Launch", WEB_APP_URL)]),
+	)
+  // const prompt = `You revealed 8 questions. Click the ones with 💰 to claim.`
 
-  const revealOptions: {[k: string]: string }= {
-    "revealed.0": "💰💰💰 Claim all rewards 💰💰💰",
-    "revealed.1": "Lorem ipsum dolor sit amet",
-    "revealed.2": "💰 Lorem ipsum dolor sit amet",
-    "revealed.3": "Lorem ipsum dolor sit amet",
-    "revealed.4": "Lorem ipsum dolor sit amet",
-    "revealed.5": "💰 Lorem ipsum dolor sit amet",
-    "revealed.6": "💰 Lorem ipsum dolor sit amet",
-    "revealed.7": "Lorem ipsum dolor sit amet",
-    "revealed.8": "💰 Humans have more than 5 senses",
-  }
-  const revealButtons = Object.keys(revealOptions).map(key => Markup.button.callback(revealOptions[key], key))
+  // const revealOptions: {[k: string]: string }= {
+  //   "revealed.0": "💰💰💰 Claim all rewards 💰💰💰",
+  //   "revealed.1": "BTC will break its current ATH...",
+  //   "revealed.2": "💰 $WIF will flip $SHIB...",
+  //   "revealed.3": "Which of the following is NOT a DEX?",
+  //   "revealed.4": "Perps are called 'Perpetuals...",
+  //   "revealed.5": "💰 Would (or have) you purchased...",
+  //   "revealed.6": "💰 Have you told any normies...",
+  //   "revealed.7": "More creators would be supportive...",
+  //   "revealed.8": "💰 DAOs are the ideal decentralized...",
+  // }
+  // const revealButtons = Object.keys(revealOptions).map(key => Markup.button.callback(revealOptions[key], key))
   
-  const menuOptions: {[k: string]: string }= {
-    "completed-answering.more": "Answer more 🎲",
-    "completed-answering.home": "Go home 🏡",
-  }
-  const menuButtons = Object.keys(menuOptions).map(key => Markup.button.callback(menuOptions[key], key))
+  // const menuOptions: {[k: string]: string }= {
+  //   "completed-answering.more": "Answer more 🎲",
+  //   "completed-answering.home": "Go home 🏡",
+  // }
+  // const menuButtons = Object.keys(menuOptions).map(key => Markup.button.callback(menuOptions[key], key))
 
-  const buttons = revealButtons.map(button => [button]).slice(0, 9)
+  // const buttons = revealButtons.map(button => [button]).slice(0, 9)
   
-  // Add the menu buttons as a single array at the end
-  buttons.push(menuButtons)
+  // // Add the menu buttons as a single array at the end
+  // buttons.push(menuButtons)
 
-  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+  // ctx.reply(prompt, Markup.inlineKeyboard(buttons))
 })
 
 bot.on("message", async ctx => {
