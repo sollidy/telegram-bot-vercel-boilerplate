@@ -11,9 +11,6 @@ import { Database } from './supabase/database.types';
 import { EBotUserState, IBotUser } from './interfaces/bot-users';
 import { adaptCtx2User } from './lib/utils';
 
-import { Turnkey } from "@turnkey/sdk-server";
-import { TCreateSubOrganizationBody, TCreateSubOrganizationInput } from '@turnkey/sdk-server/dist/__generated__/sdk_api_types';
-
 
 
 /*
@@ -41,11 +38,29 @@ ENVIRONMENT !== 'production' && development(bot);
 
 const doesUserExist = async (tgId: number) => {
   const { count, error } = await supabase
-  .from('bot_users')
-  .select('*', { count: 'exact', head: true })
-  .eq('tg_id', tgId)
+    .from('bot_users')
+    .select('*', { count: 'exact', head: true })
+    .eq('tg_id', tgId)
 
   return !!count && count > 0
+}
+
+const WEB_APP_URL = "https://chomp-git-ma-chompbot-poc-gator-labs.vercel.app/bot"
+bot.on("inline_query", ctx =>
+	ctx.answerInlineQuery([], {
+		button: { text: "Launch", web_app: { url: WEB_APP_URL } },
+	})
+);
+
+const replyWithPrimaryOptions = async (ctx: any) => {
+
+  const prompt = "What do you want to do today?"
+  const buttonOptions: {[k: string]: string }= {
+    "new.quickstart": "Start answering 🎲",
+    "new.reveal": "Reveal Answers 💵"
+  }
+  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
+  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
 }
 
 /*
@@ -59,20 +74,24 @@ bot.start(async ctx => {
   // check if user exists
   const userExists = await doesUserExist(tgId)
 
+
+  // ctx.reply(
+	// 	"Launch mini app from inline keyboard!",
+	// 	Markup.inlineKeyboard([Markup.button.webApp("Launch", WEB_APP_URL)]),
+	// )
+
+  // return
+
+  
   // if not, create user in DB and ask for email address
   if (!userExists) {
+    // await supabase.from('bot_users').insert(newUser)
     const moreInfoKeyboard = Markup.inlineKeyboard([Markup.button.callback("Why do you need my email?", "new.email-info")])
     ctx.reply("Welcome to Chomp! 🦷\n\nPlease provide your email address so Chomp Bot can generate a Solana wallet for you.", moreInfoKeyboard)
     return
   }
 
-  const prompt = "What do you want to do today?"
-  const buttonOptions: {[k: string]: string }= {
-    "new.quickstart": "Start answering 🎲",
-    "new.reveal": "Reveal Answers 💵"
-  }
-  const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
-  ctx.reply(prompt, Markup.inlineKeyboard(buttons))
+  replyWithPrimaryOptions(ctx)
 });
 
 /*
@@ -85,7 +104,7 @@ bot.action("new.email-info", async ctx =>{
   //   `This step is required to play\\. Please respond with your email address to continue\\.`
   // ]
   // const prompt = paragraphs.join("\n")
-  const prompt = `Chomp Bot uses your email to create a new Solana wallet for you to play\\. Your email address will be the owner of the wallet and Chomp Bot will be granted limited permissions to move SOL & BONK as part of normal game play\\. [Learn more](https://gator\\.fyi)\\.
+  const prompt = `Chomp Bot uses your email to create a new Solana wallet for you to play\\. Your email address will be the owner and sole custodian of the wallet\\. [Learn more](https://gator\\.fyi)\\.
 
 *Please respond with your email address to continue\\.*`
   ctx.replyWithMarkdownV2(prompt)
@@ -113,54 +132,57 @@ bot.hears(emailRegex, async ctx => {
     const emailAddress = emailAddresses[0]
     console.log(emailAddress)
     newUser.original_email_address = emailAddress
+    newUser.state = EBotUserState.NEW
 
-    const subOrganizationConfig: TCreateSubOrganizationBody = {
-      subOrganizationName: emailAddress,
-      rootUsers: [
-        // User is permanent owner with access via email.
-        {
-          userName: emailAddress,
-          userEmail: emailAddress,
-          apiKeys: [],
-          authenticators: [],
-        },
-        // Chomp user. Will be removed from root after policies granted.
-        {
-          userName: process.env.TURNKEY_POLICIES_USERNAME!,
-          apiKeys: [{apiKeyName: process.env.TURNKEY_POLICIES_LABEL!, publicKey: process.env.TURNKEY_POLICIES_API_PUBLIC_KEY!}],
-          authenticators: [],
-        },
-      ],
-      rootQuorumThreshold: 1,
-      wallet: {
-        walletName: process.env.TURNKEY_POLICIES_USERNAME!,
-        // https://github.com/tkhq/sdk/blob/b04de6258b2617b4c303c2b9797d4b30322461a3/packages/sdk-browser/src/turnkey-helpers.ts#L33
-        accounts: [{
-          pathFormat: "PATH_FORMAT_BIP32",
-          path: `m/44'/501'/0'/0'`,
-          curve: "CURVE_ED25519",
-          addressFormat: "ADDRESS_FORMAT_SOLANA",
-        }],
-      },
+    const headers = {
+      Authorization: `Bearer ${process.env.DYNAMIC_TOKEN}`,
+      'Content-Type': 'application/json'
+    }
+
+    const newUserData = {
+      chain: "SOL",
+      type: "email",
+      identifier: emailAddress
+    }
+
+    const newUserOptions = {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(newUserData)
     };
 
-    const turnkey = new Turnkey({
-      apiBaseUrl: process.env.TURNKEY_API_BASE_URL!,
-      apiPrivateKey: process.env.TURNKEY_API_KEY_PRIVATE!,
-      apiPublicKey: process.env.TURNKEY_API_KEY_PUBLIC!,
-      defaultOrganizationId: process.env.TURNKEY_ORGANIZATION_ID!
-    });
+    const baseUrl = `https://app.dynamicauth.com/api/v0`
+    const newUserUrl = `${baseUrl}/environments/${process.env.DYNAMIC_ENVIRONMENT_ID}/embeddedWallets`
+    console.log("making request to " + newUserUrl)
+    console.log(newUserOptions)
+    const dynamicUser = await fetch(newUserUrl, newUserOptions)
+      .then(response => response.json())
+
+      console.log("Created user")
+      console.log(dynamicUser)
+
+    //   const emailData = {
+    //     email: emailAddress,
+    //   }
+
+      // const emailVerifyOptions = {
+      //   method: 'POST',
+      //   headers,
+      //   body: JSON.stringify(emailData)
+      // };
+      
+    // const verifyEmailUrl = `${baseUrl}/sdk/${process.env.DYNAMIC_ENVIRONMENT_ID}/emailVerifications/create`
+    //   console.log("making request to " + verifyEmailUrl)
+    // const {verificationUUID} = await fetch(verifyEmailUrl, emailVerifyOptions)
+    //     .then(response => response.json())
+    //     .catch(err => console.error(err));
     
-    const turnkeyClient = turnkey.apiClient();
-    console.log("Creating sub organization")
-    const subOrganizationResponse = await turnkeyClient.createSubOrganization(subOrganizationConfig);
-    console.log(subOrganizationResponse)
+    //   newUser.dynamic_verification_token = verificationUUID
+    //     console.log(newUser)
+      await supabase.from('bot_users').insert(newUser)
 
-
-    // create user
-    // const {data, error} = await supabase
-    // .from('bot_users')
-    // .insert(newUser).select()
+      replyWithPrimaryOptions(ctx)
+    // ctx.reply("Awesome. We just sent you an email. Please respond with the code from the email.")
   }
 })
 
@@ -412,5 +434,6 @@ bot.action("selected-reveal.yes", async ctx =>{
 
 bot.on("message", async ctx => {
   const txt = ctx.message as any
-  ctx.reply("Send /start to begin");
+  ctx.reply("You said: " + txt);
+  // ctx.reply("Send /start to begin");
 })

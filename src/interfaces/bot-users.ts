@@ -1,5 +1,6 @@
 export enum EBotUserState {
     NEW = "NEW",
+    EMAIL_VERIFIED = "EMAIL_VERIFIED",
 }
 
 export type IBotUser = {
@@ -11,7 +12,7 @@ export type IBotUser = {
     tg_is_bot: boolean
     tg_language_code: string
     original_email_address?: string,
-    state: string
-    chomp_id?: string
+    state: EBotUserState,
     created_at?: string
+    dynamic_verification_token?: string
 }
