@@ -19,6 +19,7 @@ const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_KEY!
 
 const supabase = createClient<Database>(supabaseUrl, supabaseKey)
+// console.log(supabase)
 
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const ENVIRONMENT = process.env.NODE_ENV || '';
@@ -42,11 +43,15 @@ const doesUserExist = async (tgId: number) => {
   return !!count && count > 0
 }
 
-const WEB_APP_URL = "https://chomp-git-ma-chompbot-poc-gator-labs.vercel.app/bot"
+const WEB_APP_URL = "https://chomp-b075hkest-gator-labs.vercel.app/bot"
+
 bot.on("inline_query", ctx =>
-	ctx.answerInlineQuery([], {
+
+{
+  console.log(ctx, 'butotn')
+  ctx.answerInlineQuery([], {
 		button: { text: "Launch", web_app: { url: WEB_APP_URL } },
-	})
+	})}
 );
 
 const replyWithPrimaryOptions = async (ctx: any) => {
@@ -72,6 +77,7 @@ bot.start(async ctx => {
 
   // check if user exists
   const userExists = await doesUserExist(tgId)
+  console.log(userExists)
 
 
   // ctx.reply(
@@ -90,6 +96,7 @@ bot.start(async ctx => {
     return
   }
 
+  // console.log(ctx)z
   replyWithPrimaryOptions(ctx)
 });
 
@@ -178,7 +185,9 @@ bot.hears(emailRegex, async ctx => {
     
     //   newUser.dynamic_verification_token = verificationUUID
     //     console.log(newUser)
-      await supabase.from('bot_users').insert(newUser)
+     console.log('bot')
+     const supa=  await supabase.from('bot_users').insert(newUser)
+     console.log(supa, newUser)
 
       replyWithPrimaryOptions(ctx)
     // ctx.reply("Awesome. We just sent you an email. Please respond with the code from the email.")
@@ -448,7 +457,8 @@ bot.action("selected-reveal.yes", async ctx =>{
 })
 
 bot.on("message", async ctx => {
-  const txt = ctx.message as any
+  const txt = ctx.text as any
+  console.log(ctx, txt)
   ctx.reply("You said: " + txt);
   // ctx.reply("Send /start to begin");
 })
