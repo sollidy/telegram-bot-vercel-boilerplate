@@ -43,7 +43,7 @@ const doesUserExist = async (tgId: number) => {
   return !!count && count > 0
 }
 
-const WEB_APP_URL = "https://chomp-7y896yvj8-gator-labs.vercel.app/bot"
+const WEB_APP_URL = "https://chomp-cu3juc2lb-gator-labs.vercel.app/bot"
 
 bot.on("inline_query", ctx =>
 
