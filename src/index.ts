@@ -460,6 +460,6 @@ bot.action("selected-reveal.yes", async ctx =>{
 bot.on("message", async ctx => {
   const txt = ctx.text as any
   console.log(ctx, txt)
-  ctx.reply("You said: " + txt);
+  ctx.reply("You said: " + txt + WEB_APP_URL);
   // ctx.reply("Send /start to begin");
 })
