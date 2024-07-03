@@ -8,12 +8,6 @@ import { Database } from './supabase/database.types';
 import { EBotUserState, IBotUser } from './interfaces/bot-users';
 import { adaptCtx2User } from './lib/utils';
 
-
-
-/*
-  SETUP
-*/
-
 // Create a single supabase client for interacting with your database
 const supabaseUrl = process.env.SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_KEY!
@@ -122,7 +116,9 @@ bot.action("new.email-info", async ctx =>{
   Message received
 */
 // https://stackoverflow.com/questions/201323/how-can-i-validate-an-email-address-using-a-regular-expression
+
 const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
+
 bot.hears(emailRegex, async ctx => {
   console.log("Got email")
   const newUser: IBotUser = adaptCtx2User(ctx)
@@ -214,6 +210,7 @@ bot.action("new.quickstart", async ctx =>{
 /*
   ANSWERING FIRST ORDER -> ANSWERING SECOND ORDER
 */
+
 const secondPrompt = "What percentage of people do you think answered Raydium?"
 const secondButtonOptions: {[k: string]: string }= {
   "answering-second-order.0": "0%",
@@ -460,6 +457,6 @@ bot.action("selected-reveal.yes", async ctx =>{
 bot.on("message", async ctx => {
   const txt = ctx.text as any
   console.log(ctx, txt)
-  ctx.reply("You said: " + txt + WEB_APP_URL);
+  ctx.reply("You said, " + txt + ": " + WEB_APP_URL);
   // ctx.reply("Send /start to begin");
 })
