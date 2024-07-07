@@ -5,7 +5,7 @@ import { development, production } from './core';
 
 import { createClient } from '@supabase/supabase-js'
 import { Database } from './supabase/database.types';
-import { EBotUserState, IBotUser } from './interfaces/bot-users';
+import { IBotUser } from './interfaces/bot-users';
 import { adaptCtx2User } from './lib/utils';
 
 
@@ -59,8 +59,8 @@ const replyWithPrimaryOptions = async (ctx: any) => {
 
   const prompt = "What do you want to do today?"
   const buttonOptions: {[k: string]: string }= {
-    "new.quickstart": "Start answering 🎲",
-    "new.reveal": "Reveal Answers 💵"
+    "new.quickstart": "Answer questions 🎲",
+    "new.reveal": "Reveal & claim 💵"
   }
   const buttons = Object.keys(buttonOptions).map(key => Markup.button.callback(buttonOptions[key], key))
   ctx.reply(prompt, Markup.inlineKeyboard(buttons))
@@ -91,109 +91,12 @@ bot.start(async ctx => {
   
   // if not, create user in DB and ask for email address
   if (!userExists) {
-    // await supabase.from('bot_users').insert(newUser)
-    const moreInfoKeyboard = Markup.inlineKeyboard([Markup.button.callback("Why do you need my email?", "new.email-info")])
-    ctx.reply("Welcome to Chomp! 🦷\n\nPlease provide your email address so Chomp Bot can generate a Solana wallet for you.", moreInfoKeyboard)
-    return
+    // TODO: Create user and store in DB API
   }
 
   // console.log(ctx)z
   replyWithPrimaryOptions(ctx)
 });
-
-/*
-  NEW -> ENTERING_EMAIL
-*/
-bot.action("new.email-info", async ctx =>{
-  // const paragraphs = [
-  //   `Chomp Bot uses your email to create a new Solana wallet for you to play\\. Your email address will be the owner of the wallet and Chomp Bot will be granted limited permissions to move SOL & BONK as part of normal game play\\.`,
-  //   `Chomp Bot never stores your email associated with the wallet\\. It is used by exclusively in secure enclave Chomp Bot cannot access\\. [Learn more](https://gator\\.fyi)\\.`,
-  //   `This step is required to play\\. Please respond with your email address to continue\\.`
-  // ]
-  // const prompt = paragraphs.join("\n")
-  const prompt = `Chomp Bot uses your email to create a new Solana wallet for you to play\\. Your email address will be the owner and sole custodian of the wallet\\. [Learn more](https://gator\\.fyi)\\.
-
-*Please respond with your email address to continue\\.*`
-  ctx.replyWithMarkdownV2(prompt)
-});
-
-
-/*
-  Message received
-*/
-// https://stackoverflow.com/questions/201323/how-can-i-validate-an-email-address-using-a-regular-expression
-const emailRegex = /(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])/
-bot.hears(emailRegex, async ctx => {
-  console.log("Got email")
-  const newUser: IBotUser = adaptCtx2User(ctx)
-  const {tg_id: tgId} = newUser
-
-  // check if user exists
-  const userExists = await doesUserExist(tgId)
-
-  if (userExists) {
-    ctx.reply("You already have an account. Please type /start to continue.")
-    return
-  } else {
-    const {match: emailAddresses} = ctx
-    const emailAddress = emailAddresses[0]
-    console.log(emailAddress)
-    newUser.original_email_address = emailAddress
-    newUser.state = EBotUserState.NEW
-
-    const headers = {
-      Authorization: `Bearer ${process.env.DYNAMIC_TOKEN}`,
-      'Content-Type': 'application/json'
-    }
-
-    const newUserData = {
-      chain: "SOL",
-      type: "email",
-      identifier: emailAddress
-    }
-
-    const newUserOptions = {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(newUserData)
-    };
-
-    const baseUrl = `https://app.dynamicauth.com/api/v0`
-    const newUserUrl = `${baseUrl}/environments/${process.env.DYNAMIC_ENVIRONMENT_ID}/embeddedWallets`
-    console.log("making request to " + newUserUrl)
-    console.log(newUserOptions)
-    const dynamicUser = await fetch(newUserUrl, newUserOptions)
-      .then(response => response.json())
-
-      console.log("Created user")
-      console.log(dynamicUser)
-
-    //   const emailData = {
-    //     email: emailAddress,
-    //   }
-
-      // const emailVerifyOptions = {
-      //   method: 'POST',
-      //   headers,
-      //   body: JSON.stringify(emailData)
-      // };
-      
-    // const verifyEmailUrl = `${baseUrl}/sdk/${process.env.DYNAMIC_ENVIRONMENT_ID}/emailVerifications/create`
-    //   console.log("making request to " + verifyEmailUrl)
-    // const {verificationUUID} = await fetch(verifyEmailUrl, emailVerifyOptions)
-    //     .then(response => response.json())
-    //     .catch(err => console.error(err));
-    
-    //   newUser.dynamic_verification_token = verificationUUID
-    //     console.log(newUser)
-     console.log('bot')
-     const supa=  await supabase.from('bot_users').insert(newUser)
-     console.log(supa, newUser)
-
-      replyWithPrimaryOptions(ctx)
-    // ctx.reply("Awesome. We just sent you an email. Please respond with the code from the email.")
-  }
-})
 
 
 /*
