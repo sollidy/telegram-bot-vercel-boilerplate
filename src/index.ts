@@ -1,5 +1,8 @@
-import { Telegraf } from 'telegraf';
 
+
+import { Telegraf } from 'telegraf';
+import { config } from 'dotenv';
+config();
 import { about } from './commands';
 import { greeting } from './text';
 import { VercelRequest, VercelResponse } from '@vercel/node';
@@ -7,6 +10,12 @@ import { development, production } from './core';
 
 const BOT_TOKEN = process.env.BOT_TOKEN || '';
 const ENVIRONMENT = process.env.NODE_ENV || '';
+if (!BOT_TOKEN) {
+  console.error('Error: BOT_TOKEN is not defined in .env file');
+  process.exit(1);
+}
+// console.log(`BOT_TOKEN: ${BOT_TOKEN}`);
+// console.log(`NODE_ENV: ${ENVIRONMENT}`);
 
 const bot = new Telegraf(BOT_TOKEN);
 
@@ -19,3 +28,4 @@ export const startVercel = async (req: VercelRequest, res: VercelResponse) => {
 };
 //dev mode
 ENVIRONMENT !== 'production' && development(bot);
+

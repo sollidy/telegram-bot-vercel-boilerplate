@@ -15,16 +15,15 @@
     "@types/node": "^22.8.6",
     "@vercel/ncc": "^0.38.2",
     "debug": "^4.3.7",
-    "nodemon": "^3.1.7",
+    "dotenv": "^17.2.0",
+    "nodemon": "^3.1.10",
     "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "typescript": "^5.8.3"
   },
   "scripts": {
-    "dev": "DEBUG=bot* dotenv -- nodemon -e ts -x ts-node src/index.ts",
-    "devWindows": "@powershell -Command $env:DEBUG='bot*';dotenv -- -- nodemon -e ts -x ts-node src/index.ts",
-    "build": "ncc build src/index.ts -o public -m",
-    "prettier": "prettier --write 'src/**/*.ts'",
-    "lint": "tsc --noemit"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "nodemon -e ts -x ts-node src/index.ts"
   }
 }
